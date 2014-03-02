@@ -120,7 +120,9 @@
 //        Rxxx Wait for extruder current temp to reach target temp. Waits when heating and cooling
 // M114 - Output current position to serial port
 // M115 - Capabilities string
+// M116 - Force LCD 4D Update
 // M117 - display message
+// M118 - LCD 4D Finish Sound
 // M119 - Output Endstop status to serial port
 // M126 - Solenoid Air Valve Open (BariCUDA support by jmil)
 // M127 - Solenoid Air Valve Closed (BariCUDA vent to atmospheric pressure by jmil)
@@ -344,6 +346,7 @@ extern "C"{
     return free_memory;
   }
 }
+LCD_INIT
 
 //adds an command to the main command buffer
 //thats really done in a non-safe way.
@@ -522,6 +525,11 @@ void loop()
   #ifdef SDSUPPORT
   card.checkautostart(false);
   #endif
+  
+  #ifdef LCD_4D
+  LCD4D_CHECKDATA
+  #endif
+  
   if(buflen)
   {
     #ifdef SDSUPPORT
@@ -560,6 +568,7 @@ void loop()
   manage_inactivity();
   checkHitEndstops();
   lcd_update();
+  LCD_STATUS
 }
 
 void get_command()
@@ -670,6 +679,15 @@ void get_command()
     }
   }
   #ifdef SDSUPPORT
+  
+  #ifdef LCD_4D
+        SERIAL1_PROTOCOLLNPGM(MSG_BEGIN_FILE_LIST);
+      #endif
+      
+  #ifdef LCD_4D
+      SERIAL1_PROTOCOLLNPGM(MSG_END_FILE_LIST);
+      #endif
+      
   if(!card.sdprinting || serial_count!=0){
     return;
   }
@@ -2158,12 +2176,28 @@ void process_commands()
     case 115: // M115
       SERIAL_PROTOCOLPGM(MSG_M115_REPORT);
       break;
+      
+     #ifdef LCD_4D
+      
+      case 116: //M116 LCD 4D force updatae
+      LCD_FORCE_UPDATE
+      break;
+      #endif
+    
     case 117: // M117 display message
       starpos = (strchr(strchr_pointer + 5,'*'));
       if(starpos!=NULL)
         *(starpos-1)='\0';
       lcd_setstatus(strchr_pointer + 5);
       break;
+      
+    #ifdef LCD_4D
+     case 118: //M118 finish sound
+       LCD_FINISH_SOUND
+       break;
+     #endif
+     
+     
     case 114: // M114
       SERIAL_PROTOCOLPGM("X:");
       SERIAL_PROTOCOL(current_position[X_AXIS]);
