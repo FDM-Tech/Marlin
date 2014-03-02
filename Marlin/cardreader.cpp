@@ -83,6 +83,11 @@ void  CardReader::lsDive(const char *prepend,SdFile parent)
           SERIAL_ECHO_START;
           SERIAL_ECHOLN(MSG_SD_CANT_OPEN_SUBDIR);
           SERIAL_ECHOLN(lfilename);
+#ifdef LCD_4D
+          SERIAL1_ECHO_START;
+          SERIAL1_ECHOLN(MSG_SD_CANT_OPEN_SUBDIR);
+          SERIAL1_ECHOLN(lfilename);
+#endif
         }
       }
       lsDive(path,dir);
@@ -117,6 +122,11 @@ void  CardReader::lsDive(const char *prepend,SdFile parent)
       {
         SERIAL_PROTOCOL(prepend);
         SERIAL_PROTOCOLLN(filename);
+#ifdef LCD_4D
+        SERIAL1_PROTOCOL(prepend);
+        SERIAL1_PROTOCOLLN(filename);
+#endif
+ 
       }
       else if(lsAction==LS_Count)
       {
