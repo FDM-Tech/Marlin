@@ -49,6 +49,10 @@
 
 #include "WString.h"
 
+#ifdef LCD_4D
+   #define MYSERIAL1 MSerial1
+ #endif
+
 #ifdef AT90USB
    #ifdef BTENABLED
          #define MYSERIAL bt
@@ -65,6 +69,13 @@
 #define SERIAL_PROTOCOLLN(x) (MYSERIAL.print(x),MYSERIAL.write('\n'))
 #define SERIAL_PROTOCOLLNPGM(x) (serialprintPGM(PSTR(x)),MYSERIAL.write('\n'))
 
+#ifdef MYSERIAL1
+ #define SERIAL1_PROTOCOL(x) MYSERIAL1.print(x);
+ #define SERIAL1_PROTOCOL_F(x,y) MYSERIAL1.print(x,y);
+ #define SERIAL1_PROTOCOLPGM(x) serial1printPGM(MYPGM(x));
+ #define SERIAL1_PROTOCOLLN(x) {MYSERIAL1.print(x);MYSERIAL1.write('\n');}
+ #define SERIAL1_PROTOCOLLNPGM(x) {serial1printPGM(MYPGM(x));MYSERIAL1.write('\n');}
+ #endif
 
 const char errormagic[] PROGMEM ="Error:";
 const char echomagic[] PROGMEM ="echo:";
@@ -79,6 +90,21 @@ const char echomagic[] PROGMEM ="echo:";
 #define SERIAL_ECHOPGM(x) SERIAL_PROTOCOLPGM(x)
 #define SERIAL_ECHOLN(x) SERIAL_PROTOCOLLN(x)
 #define SERIAL_ECHOLNPGM(x) SERIAL_PROTOCOLLNPGM(x)
+
+#ifdef MYSERIAL1
+ #define SERIAL1_ERROR_START serial1printPGM(errormagic);
+ #define SERIAL1_ERROR(x) SERIAL1_PROTOCOL(x)
+ #define SERIAL1_ERRORPGM(x) SERIAL1_PROTOCOLPGM(x)
+ #define SERIAL1_ERRORLN(x) SERIAL1_PROTOCOLLN(x)
+ #define SERIAL1_ERRORLNPGM(x) SERIAL1_PROTOCOLLNPGM(x)
+ 
+ #define SERIAL1_ECHO_START serial1printPGM(echomagic);
+ #define SERIAL1_ECHO(x) SERIAL1_PROTOCOL(x)
+ #define SERIAL1_ECHOPGM(x) SERIAL1_PROTOCOLPGM(x)
+ #define SERIAL1_ECHOLN(x) SERIAL1_PROTOCOLLN(x)
+ #define SERIAL1_ECHOLNPGM(x) SERIAL1_PROTOCOLLNPGM(x)
+ #endif
+
 
 #define SERIAL_ECHOPAIR(name,value) (serial_echopair_P(PSTR(name),(value)))
 
@@ -98,7 +124,19 @@ FORCE_INLINE void serialprintPGM(const char *str)
   }
 }
 
-
+#ifdef MYSERIAL1
+ #define Serial1printPGM(x) serial1printPGM(MYPGM(x))
+ FORCE_INLINE void serial1printPGM(const char *str)
+ {
+   char ch=pgm_read_byte(str);
+   while(ch)
+   {
+     MYSERIAL1.write(ch);
+     ch=pgm_read_byte(++str);
+  }
+ }
+ #endif
+ 
 void get_command();
 void process_commands();
 
